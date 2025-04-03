@@ -1,70 +1,91 @@
 import 'package:flutter/material.dart';
+import '../models/physiotherapist.dart';
 
 class PhysioCard extends StatelessWidget {
-  final String name;
-  final String specialty;
-  final String image;
+  final Physiotherapist physio;
+  final VoidCallback onTap;
 
   const PhysioCard({
     super.key,
-    required this.name,
-    required this.specialty,
-    required this.image,
+    required this.physio,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Color.fromRGBO(255, 255, 255, 0.9), // ✅ FIXED
-            offset: Offset(-4, -4),
-            blurRadius: 10,
-          ),
-          BoxShadow(
-            color: Color.fromRGBO(200, 200, 200, 0.6), // ✅ FIXED
-            offset: Offset(4, 4),
-            blurRadius: 10,
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 100,
-            height: 100,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              image: DecorationImage(
-                image: AssetImage(image),
-                fit: BoxFit.cover,
+    final String image = physio.image;
+    final bool isNetworkImage = image.startsWith("http") || image.startsWith("https");
+    final bool hasImage = image.isNotEmpty;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: EdgeInsets.only(bottom: 16),
+        padding: EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.shade300,
+              offset: Offset(2, 2),
+              blurRadius: 5,
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: hasImage
+                  ? (isNetworkImage
+                      ? Image.network(
+                          image,
+                          width: 80,
+                          height: 80,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            print("❌ Error loading image: $image");
+                            return Icon(Icons.broken_image, size: 80, color: Colors.red);
+                          },
+                        )
+                      : Image.asset(
+                          image,
+                          width: 80,
+                          height: 80,
+                          fit: BoxFit.cover,
+                        ))
+                  : Container(
+                      width: 80,
+                      height: 80,
+                      color: Colors.grey[200],
+                      child: Icon(Icons.person, size: 40, color: Colors.grey),
+                    ),
+            ),
+            SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    physio.fullName,
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    physio.specialization,
+                    style: TextStyle(color: Colors.grey, fontSize: 14),
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    physio.location,
+                    style: TextStyle(fontSize: 12, color: Colors.blueGrey),
+                  ),
+                ],
               ),
             ),
-          ),
-          SizedBox(width: 16),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                name,
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
-              ),
-              SizedBox(height: 4),
-              Text(
-                specialty,
-                style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
-              ),
-            ],
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

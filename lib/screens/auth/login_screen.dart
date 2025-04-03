@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:myapp/Services/authServices.dart';
 import 'package:myapp/screens/auth/signup_screen.dart';
 import 'package:myapp/navigation/bottom_nav.dart';
-import 'package:myapp/screens/home/physio_screen.dart';
+import 'package:myapp/screens/home/Physio_dashboard.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);

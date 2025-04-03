@@ -1,23 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:myapp/models/physiotherapist.dart';
+import 'package:myapp/widgets/physio_card.dart';
+import 'physio_details_screen.dart';
 import 'dart:math';
-
-// Physiotherapist Model
-class Physiotherapist {
-  final String name;
-  final String specialty;
-  final String image;
-  final double latitude;
-  final double longitude;
-
-  Physiotherapist({
-    required this.name,
-    required this.specialty,
-    required this.image,
-    required this.latitude,
-    required this.longitude,
-  });
-}
 
 class PhysiotherapistsScreen extends StatefulWidget {
   const PhysiotherapistsScreen({super.key});
@@ -27,80 +14,62 @@ class PhysiotherapistsScreen extends StatefulWidget {
 }
 
 class _PhysiotherapistsScreenState extends State<PhysiotherapistsScreen> {
-  List<Physiotherapist> physiotherapists = [
-    Physiotherapist(
-      name: "Dr. Emily Reid",
-      specialty: "Sports Therapy",
-      image: "assets/images/physio1.jpg",
-      latitude: 37.7749, // Example location (San Francisco)
-      longitude: -122.4194,
-    ),
-    Physiotherapist(
-      name: "Dr. Michael Chen",
-      specialty: "Post-Op Recovery",
-      image: "assets/images/physio2.jpg",
-      latitude: 34.0522, // Example location (Los Angeles)
-      longitude: -118.2437,
-    ),
-  ];
-
+  List<Physiotherapist> physiotherapists = [];
   Position? userLocation;
 
   @override
   void initState() {
     super.initState();
+    _fetchPhysiotherapists();
     _getUserLocation();
   }
 
+  Future<void> _fetchPhysiotherapists() async {
+  try {
+    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection('users')  // ✅ Fetch from users collection
+        .where("role", isEqualTo: "physiotherapist")  // ✅ Filter by role
+        .get();
+
+    List<Physiotherapist> fetchedPhysios = querySnapshot.docs.map((doc) {
+      var data = doc.data() as Map<String, dynamic>;
+      return Physiotherapist(
+        id: doc.id,
+        fullName: data["fullName"] ?? "Unknown",
+        specialization: data["specialization"] ?? "Not specified",
+        image: data["image"] ?? "assets/default.png",  // Default image if missing
+        latitude: (data["latitude"] ?? 0.0).toDouble(),  // ✅ Ensure double
+        longitude: (data["longitude"] ?? 0.0).toDouble(), // ✅ Ensure double
+        phoneNumber: data["phone_number"] ?? "No phone",
+        location: data["location"] ?? "Unknown location",
+        availability: data["availability"] ?? "Not available",
+        email: data["email"] ?? "No email",
+        licenseNumber: data["licenseNumber"] ?? "N/A",
+      );
+    }).toList();
+
+    setState(() {
+      physiotherapists = fetchedPhysios;
+    });
+
+    _sortPhysiotherapistsByDistance();
+  } catch (e) {
+    print("❌ Error fetching physiotherapists: $e");
+  }
+}
+
+
+
+
   Future<void> _getUserLocation() async {
-    bool serviceEnabled;
-    LocationPermission permission;
-
-    // ✅ Check if location services are enabled
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      debugPrint("❌ Location services are disabled.");
-      return;
-    }
-
-    // ✅ Request permission if not already granted
-    permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        debugPrint("❌ Location permission denied.");
-        return;
-      }
-    }
-
-    if (permission == LocationPermission.deniedForever) {
-      debugPrint("❌ Location permissions are permanently denied.");
-      return;
-    }
-
     try {
-      // ✅ Try getting current location
       Position position = await Geolocator.getCurrentPosition();
-      debugPrint("✅ User location retrieved: ${position.latitude}, ${position.longitude}");
-
       setState(() {
         userLocation = position;
-        _sortPhysiotherapistsByDistance();
       });
+      _sortPhysiotherapistsByDistance();
     } catch (e) {
-      debugPrint("❌ Error getting location: $e");
-
-      // ✅ Fallback: Try using last known location
-      Position? lastKnown = await Geolocator.getLastKnownPosition();
-      if (lastKnown != null) {
-        debugPrint("⚠️ Using last known location: ${lastKnown.latitude}, ${lastKnown.longitude}");
-        setState(() {
-          userLocation = lastKnown;
-          _sortPhysiotherapistsByDistance();
-        });
-      } else {
-        debugPrint("❌ No last known location available.");
-      }
+      print("❌ Error getting user location: $e");
     }
   }
 
@@ -113,11 +82,11 @@ class _PhysiotherapistsScreenState extends State<PhysiotherapistsScreen> {
       return distanceA.compareTo(distanceB);
     });
 
-    setState(() {}); // Refresh UI with sorted list
+    setState(() {});
   }
 
   double _calculateDistance(double lat1, double lon1, double lat2, double lon2) {
-    const double R = 6371; // Earth's radius in km
+    const double R = 6371;
     double dLat = _degreesToRadians(lat2 - lat1);
     double dLon = _degreesToRadians(lon2 - lon1);
     double a = sin(dLat / 2) * sin(dLat / 2) +
@@ -126,40 +95,28 @@ class _PhysiotherapistsScreenState extends State<PhysiotherapistsScreen> {
     return R * c;
   }
 
-  double _degreesToRadians(double degrees) {
-    return degrees * pi / 180;
-  }
+  double _degreesToRadians(double degrees) => degrees * pi / 180;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text("Physiotherapists Near You")),
-      body: userLocation == null
-          ? Center(child: CircularProgressIndicator()) // Show loading indicator
+      body: physiotherapists.isEmpty
+          ? Center(child: CircularProgressIndicator())
           : ListView.builder(
               itemCount: physiotherapists.length,
               itemBuilder: (context, index) {
-                Physiotherapist physio = physiotherapists[index];
-                double distance = _calculateDistance(
-                  userLocation!.latitude,
-                  userLocation!.longitude,
-                  physio.latitude,
-                  physio.longitude,
-                );
-
-                return ListTile(
-                  leading: ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: Image.asset(
-                      physio.image,
-                      width: 60,
-                      height: 60,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  title: Text(physio.name, style: TextStyle(fontWeight: FontWeight.bold)),
-                  subtitle: Text("${physio.specialty} • ${distance.toStringAsFixed(1)} km away"),
-                  trailing: Icon(Icons.location_on, color: Colors.blue),
+                final physio = physiotherapists[index];
+                return PhysioCard(
+                  physio: physio,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => PhysioDetailsScreen(physio: physio),
+                      ),
+                    );
+                  },
                 );
               },
             ),

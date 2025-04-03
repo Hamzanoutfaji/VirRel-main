@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:myapp/Services/authServices.dart';
 import 'package:myapp/navigation/bottom_nav.dart';
 import 'package:myapp/screens/auth/login_screen.dart';
-import 'package:myapp/screens/home/physio_screen.dart';
+import 'package:myapp/screens/home/Physio_dashboard.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({Key? key}) : super(key: key);

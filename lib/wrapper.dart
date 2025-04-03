@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:myapp/navigation/bottom_nav.dart';
 import 'package:myapp/screens/auth/login_screen.dart';
-import 'package:myapp/screens/home/physio_screen.dart';
+import 'package:myapp/screens/home/Physio_dashboard.dart';
 
 class AuthWrapper extends StatelessWidget {
   @override
