@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "986275393312",
+    "project_id": "virtual-relief",
+    "storage_bucket": "virtual-relief.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:986275393312:android:12d0430ea2d808c46e3145",
+        "android_client_info": {
+          "package_name": "com.example.myapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC8mv3Q32joLiqo-goB45FR5FiRbrnbJrU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
