@@ -46,7 +46,7 @@ class StrengthTrainingScreen extends StatelessWidget {
                   title: Text(ex['Exercise_name'] ?? 'No Name'),
                   subtitle: Text(
                     ex['target muscle'] != null 
-                        ? 'Target: ${ex['target_muscle']}' 
+                        ? 'Target: ${ex['target muscle']}' 
                         : 'No target information'
                   ),
                   trailing: const Icon(Icons.arrow_forward_ios),
