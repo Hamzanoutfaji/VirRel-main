@@ -11,7 +11,7 @@ class PhysioDetailsScreen extends StatelessWidget {
     bool isNetworkImage = physio.image.startsWith("http") || physio.image.startsWith("https");
 
     return Scaffold(
-      appBar: AppBar(title: Text(physio.fullName)),
+      appBar: AppBar(title: Text("Dr. ${physio.fullName}")),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(16),
         child: Column(
@@ -35,12 +35,28 @@ class PhysioDetailsScreen extends StatelessWidget {
                         );
                       },
                     )
-                  : Image.asset(
-                      physio.image,
-                      width: double.infinity,
-                      height: 200,
-                      fit: BoxFit.cover,
-                    ),
+                  : physio.image.isNotEmpty
+                      ? Image.network(
+                          physio.image,
+                          width: double.infinity,
+                          height: 200,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            print("❌ Error loading image: ${physio.image}");
+                            return Container(
+                              width: double.infinity,
+                              height: 200,
+                              color: Colors.grey[300],
+                              child: Icon(Icons.error, size: 50, color: Colors.red),
+                            );
+                          },
+                        )
+                      : Image.asset(
+                          'assets/images/physio1.jpg', // You can set your default image here
+                          width: double.infinity,
+                          height: 200,
+                          fit: BoxFit.cover,
+                        ),
             ),
             SizedBox(height: 16),
             Text(
